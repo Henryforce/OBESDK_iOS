@@ -338,6 +338,7 @@
 				393BF2A41C8135330050593C /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
