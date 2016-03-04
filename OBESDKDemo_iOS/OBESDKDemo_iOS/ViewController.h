@@ -15,7 +15,8 @@
 
 //@property (weak, nonatomic) IBOutlet UIButton *searchButton;
 
--(IBAction)search:(id)sender;
+- (IBAction)search:(id)sender;
+- (IBAction)toggleMotors:(id)sender;
 
 @end
 

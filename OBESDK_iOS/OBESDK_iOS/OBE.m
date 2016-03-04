@@ -10,8 +10,10 @@
 
 #define OBEService @"0003cbbb-0000-1000-8000-00805F9B0131"
 #define OBEQuaternionCharacteristic_Left @"0003cbb2-0000-1000-8000-00805F9B0131"
-#define OBEQuaternionCharacteristic_Right @"0003cbb3-0000-1000-8000-00805F9B0131"
-#define OBEQuaternionCharacteristic_Center @"0003cbb4-0000-1000-8000-00805F9B0131"
+#define OBEQuaternionCharacteristic_Right @"0003cbb4-0000-1000-8000-00805F9B0131"
+#define OBEQuaternionCharacteristic_Center @"0003cbb5-0000-1000-8000-00805F9B0131"
+#define OBEPresetCharacteristic @"0003cbb3-0000-1000-8000-00805F9B0131"
+#define OBEHapticCharacteristic @"0003cbb1-0000-1000-8000-00805F9B0131"
 
 #define QuaternionLeft 0
 #define QuaternionRight 1
@@ -58,6 +60,36 @@ union {
         [manager cancelPeripheralConnection:obePeripheral];
         [obePeripheral setDelegate:nil];
         obePeripheral = nil;
+    }
+}
+
+- (void) updateMotorState{
+    if((obePeripheral != nil) && (hapticCH != nil)){
+        // send status command
+        dispatch_async(dispatch_get_global_queue(0,0), ^{//normal priority
+            
+            const int bufferSize = 7;
+            
+            Byte motor1 = (Byte)(_Motor1 * 255.0f);
+            Byte motor2 = (Byte)(_Motor1 * 255.0f);
+            Byte motor3 = (Byte)(_Motor1 * 255.0f);
+            Byte motor4 = (Byte)(_Motor1 * 255.0f);
+            
+            Byte auxByte[bufferSize];
+            auxByte[0] = 0x7E;
+            auxByte[1] = motor1;
+            auxByte[2] = motor2;
+            auxByte[3] = motor3;
+            auxByte[4] = motor4;
+            auxByte[5] = 0x00;
+            auxByte[6] = 0x00;
+            
+            NSData *auxData = [NSData dataWithBytes:auxByte length:bufferSize];
+            
+            [obePeripheral writeValue:auxData forCharacteristic:hapticCH type:CBCharacteristicWriteWithoutResponse];
+            
+            auxData = nil;
+        });
     }
 }
 
@@ -218,6 +250,18 @@ union {
             if ([aChar.UUID isEqual:[CBUUID UUIDWithString:OBEQuaternionCharacteristic_Left]]){
                 
                 [aPeripheral setNotifyValue:YES forCharacteristic:aChar];
+                
+            }else if ([aChar.UUID isEqual:[CBUUID UUIDWithString:OBEQuaternionCharacteristic_Right]]){
+                
+                [aPeripheral setNotifyValue:YES forCharacteristic:aChar];
+                
+            }else if ([aChar.UUID isEqual:[CBUUID UUIDWithString:OBEQuaternionCharacteristic_Center]]){
+                
+                [aPeripheral setNotifyValue:YES forCharacteristic:aChar];
+                
+            }else if ([aChar.UUID isEqual:[CBUUID UUIDWithString:OBEHapticCharacteristic]]){
+                
+                hapticCH = aChar;
                 
             }
         }

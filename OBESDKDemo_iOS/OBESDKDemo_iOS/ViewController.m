@@ -64,13 +64,28 @@
 
 #pragma mark IBFunctions
 
--(IBAction)search:(id)sender{
+- (IBAction)search:(id)sender{
     //obe = [[OBE alloc] init];
     //[obe setDelegate:self];
     
     [obe startScanning];
     
     NSLog(@"Scan started");
+}
+
+- (IBAction)toggleMotors:(id)sender{
+    UISwitch *toggle = (UISwitch *)sender;
+    
+    float motorValue = toggle.isOn ? 1.0f : 0.0f;
+    
+    if(obe != nil){
+        [obe setMotor1:motorValue];
+        [obe setMotor2:motorValue];
+        [obe setMotor3:motorValue];
+        [obe setMotor4:motorValue];
+        
+        [obe updateMotorState];
+    }
 }
 
 @end

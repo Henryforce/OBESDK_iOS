@@ -21,6 +21,7 @@
 @interface OBE : NSObject<CBCentralManagerDelegate, CBPeripheralDelegate>{
     CBCentralManager *manager;
     CBPeripheral *obePeripheral;
+    CBCharacteristic *hapticCH;
     
     NSMutableArray *peripherals;
     
@@ -30,10 +31,16 @@
 
 @property id<OBEDelegate> delegate;
 
+@property float Motor1;
+@property float Motor2;
+@property float Motor3;
+@property float Motor4;
+
 - (id)initWithDelegate:(id<OBEDelegate>)delegate;
 
 - (void) startScanning;
 - (void) connectToOBE:(int)index;
 - (void) disconnectFromOBE;
+- (void) updateMotorState;
 
 @end
