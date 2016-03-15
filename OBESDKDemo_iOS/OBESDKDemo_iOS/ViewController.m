@@ -58,9 +58,9 @@
     NSLog(@"Disconnected from: %@", name);
 }
 
-- (void) onQuaternionUpdated:(int) identifier W:(float)w X:(float)x Y:(float)y Z:(float)z{
-    NSLog(@"%i, %f, %f, %f, %f", identifier, w, x, y, z);
-}
+//- (void) onQuaternionUpdated:(int) identifier W:(float)w X:(float)x Y:(float)y Z:(float)z{
+//    NSLog(@"%i, %f, %f, %f, %f", identifier, w, x, y, z);
+//}
 
 #pragma mark IBFunctions
 

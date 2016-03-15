@@ -15,14 +15,17 @@
 #define OBEPresetCharacteristic @"0003cbb3-0000-1000-8000-00805F9B0131"
 #define OBEHapticCharacteristic @"0003cbb1-0000-1000-8000-00805F9B0131"
 
-#define QuaternionLeft 0
-#define QuaternionRight 1
-#define QuaternionCenter 2
+#define OBEQuaternionLeft 0
+#define OBEQuaternionRight 1
+#define OBEQuaternionCenter 2
+
+#define OBEMPUDataSize 20
+#define OBEHapticDataSize 7
 
 union {
     float float_variable;
     Byte temp_array[4];
-} Quaternion;
+} floatStruct;
 
 @implementation OBE
 
@@ -65,15 +68,16 @@ union {
 
 - (void) updateMotorState{
     if((obePeripheral != nil) && (hapticCH != nil)){
+        NSLog(@"Sending");
         // send status command
         dispatch_async(dispatch_get_global_queue(0,0), ^{//normal priority
             
             const int bufferSize = 7;
             
             Byte motor1 = (Byte)(_Motor1 * 255.0f);
-            Byte motor2 = (Byte)(_Motor1 * 255.0f);
-            Byte motor3 = (Byte)(_Motor1 * 255.0f);
-            Byte motor4 = (Byte)(_Motor1 * 255.0f);
+            Byte motor2 = (Byte)(_Motor2 * 255.0f);
+            Byte motor3 = (Byte)(_Motor3 * 255.0f);
+            Byte motor4 = (Byte)(_Motor4 * 255.0f);
             
             Byte auxByte[bufferSize];
             auxByte[0] = 0x7E;
@@ -81,7 +85,7 @@ union {
             auxByte[2] = motor2;
             auxByte[3] = motor3;
             auxByte[4] = motor4;
-            auxByte[5] = 0x00;
+            auxByte[5] = 0xFF;
             auxByte[6] = 0x00;
             
             NSData *auxData = [NSData dataWithBytes:auxByte length:bufferSize];
@@ -90,6 +94,8 @@ union {
             
             auxData = nil;
         });
+    }else{
+        NSLog(@"Not sending");
     }
 }
 
@@ -251,7 +257,7 @@ union {
                 
                 [aPeripheral setNotifyValue:YES forCharacteristic:aChar];
                 
-            }else if ([aChar.UUID isEqual:[CBUUID UUIDWithString:OBEQuaternionCharacteristic_Right]]){
+            }/*else if ([aChar.UUID isEqual:[CBUUID UUIDWithString:OBEQuaternionCharacteristic_Right]]){
                 
                 [aPeripheral setNotifyValue:YES forCharacteristic:aChar];
                 
@@ -259,7 +265,7 @@ union {
                 
                 [aPeripheral setNotifyValue:YES forCharacteristic:aChar];
                 
-            }else if ([aChar.UUID isEqual:[CBUUID UUIDWithString:OBEHapticCharacteristic]]){
+            }*/else if ([aChar.UUID isEqual:[CBUUID UUIDWithString:OBEHapticCharacteristic]]){
                 
                 hapticCH = aChar;
                 
@@ -279,47 +285,148 @@ union {
         //NSString *auxString = [[NSString alloc] initWithData:characteristic.value encoding:NSUTF8StringEncoding];
         //NSLog(@"Received %@", auxString); auxString = nil;
         
-        if([characteristic.value length] == 16){
+        if([characteristic.value length] == OBEMPUDataSize){
             
             NSData *quaternionData = [characteristic value];
-            Byte *buffer = malloc(sizeof(Byte) * 16);
-            [quaternionData getBytes:buffer length:16];
+            Byte *buffer = malloc(sizeof(Byte) * OBEMPUDataSize);
+            [quaternionData getBytes:buffer length:OBEMPUDataSize];
             
-            [self bufferToQuaternionStruct:buffer];
+            //[self bufferToQuaternionStruct:buffer];
+            [self assignBuffer:buffer withIdentifier:buffer[18]];
+            if(buffer[18] == OBEQuaternionRight){
+                Byte auxByte = buffer[18];
+                _Button1 = (auxByte & 0x01) ? true : false;
+                _Button2 = (auxByte & 0x02) ? true : false;
+                _Button3 = (auxByte & 0x04) ? true : false;
+                _Button4 = (auxByte & 0x08) ? true : false;
+            }
             
             free(buffer);
             
-            [_delegate onQuaternionUpdated:QuaternionLeft W:W X:X Y:Y Z:Z];
+            //[_delegate onQuaternionUpdated:QuaternionLeft W:W X:X Y:Y Z:Z];
         }
     }
 }
 
 #pragma mark User Functions
 
+- (float) calculatePitch:(float) ax :(float) ay :(float) az{
+    float localPitch = 0.0f, squareResult = 0.0f;
+    
+    squareResult = sqrtf(ay * ay + az * az);
+    localPitch = atan2f(-ax, squareResult); // pitch in radians
+    //localPitch = localPitch * 57.2957f; // pitch in degrees
+    
+    return localPitch;
+}
+
+- (float) calculateRoll:(float)ay :(float)az{
+    float localRoll = 0.0f;
+    
+    localRoll = atan2f(ay, az); // roll in radians
+    //localRoll = localRoll * 57.2957f; // roll in degrees
+    
+    return localRoll;
+}
+
+- (float) calculateYaw:(float)roll :(float)pitch :(float)mx :(float)my :(float) mz{
+    float localYaw = 0.0f, upper = 0.0f, lower = 0.0f, sinRoll = 0.0f, cosRoll = 0.0f,
+    sinPitch = 0.0f, cosPitch = 0.0f;
+    
+    sinRoll = sinf(roll);
+    cosRoll = cosf(roll); // / 57.2957f
+    sinPitch = sinf(pitch);
+    cosPitch = cosf(pitch);
+    
+    upper = mz * sinRoll - my * cosRoll;
+    lower = mx * cosPitch + my * sinPitch * sinRoll +
+    mz * sinPitch * cosRoll;
+    localYaw = atan2f(upper, lower); // yaw in radians
+    //localYaw = localYaw * 57.2957f; // yaw in angles
+    
+    return localYaw;
+}
+
+- (Quaternion *) calculateQuaternion:(float) roll :(float) pitch :(float) yaw{
+    float sinHalfYaw = sinf(yaw / 2.0f);
+    float cosHalfYaw = cosf(yaw / 2.0f);
+    float sinHalfPitch = sinf(pitch/ 2.0f);
+    float cosHalfPitch = cosf(pitch / 2.0f);
+    float sinHalfRoll = sinf(roll / 2.0f);
+    float cosHalfRoll = cosf(roll / 2.0f);
+    
+    float x = -cosHalfRoll * sinHalfPitch * sinHalfYaw + cosHalfPitch * cosHalfYaw * sinHalfRoll;
+    float y = cosHalfRoll * cosHalfYaw * sinHalfPitch + sinHalfRoll * cosHalfPitch * sinHalfYaw;
+    float z = cosHalfRoll * cosHalfPitch * sinHalfYaw - sinHalfRoll * cosHalfYaw * sinHalfPitch;
+    float w = cosHalfRoll * cosHalfPitch * cosHalfYaw + sinHalfRoll * sinHalfPitch * sinHalfYaw;
+    
+    Quaternion *auxQ = [[Quaternion alloc] initWithW:w X:x Y:y Z:z];
+    
+    return auxQ;
+}
+
 - (void) bufferToQuaternionStruct:(Byte *)buffer{
-    Quaternion.temp_array[0] = buffer[0];
-    Quaternion.temp_array[1] = buffer[1];
-    Quaternion.temp_array[2] = buffer[2];
-    Quaternion.temp_array[3] = buffer[3];
-    W = Quaternion.float_variable;
+    floatStruct.temp_array[0] = buffer[0];
+    floatStruct.temp_array[1] = buffer[1];
+    floatStruct.temp_array[2] = buffer[2];
+    floatStruct.temp_array[3] = buffer[3];
+    W = floatStruct.float_variable;
     
-    Quaternion.temp_array[0] = buffer[4];
-    Quaternion.temp_array[1] = buffer[5];
-    Quaternion.temp_array[2] = buffer[6];
-    Quaternion.temp_array[3] = buffer[7];
-    X = Quaternion.float_variable;
+    floatStruct.temp_array[0] = buffer[4];
+    floatStruct.temp_array[1] = buffer[5];
+    floatStruct.temp_array[2] = buffer[6];
+    floatStruct.temp_array[3] = buffer[7];
+    X = floatStruct.float_variable;
     
-    Quaternion.temp_array[0] = buffer[8];
-    Quaternion.temp_array[1] = buffer[9];
-    Quaternion.temp_array[2] = buffer[10];
-    Quaternion.temp_array[3] = buffer[11];
-    Y = Quaternion.float_variable;
+    floatStruct.temp_array[0] = buffer[8];
+    floatStruct.temp_array[1] = buffer[9];
+    floatStruct.temp_array[2] = buffer[10];
+    floatStruct.temp_array[3] = buffer[11];
+    Y = floatStruct.float_variable;
     
-    Quaternion.temp_array[0] = buffer[12];
-    Quaternion.temp_array[1] = buffer[13];
-    Quaternion.temp_array[2] = buffer[14];
-    Quaternion.temp_array[3] = buffer[15];
-    Z = Quaternion.float_variable;
+    floatStruct.temp_array[0] = buffer[12];
+    floatStruct.temp_array[1] = buffer[13];
+    floatStruct.temp_array[2] = buffer[14];
+    floatStruct.temp_array[3] = buffer[15];
+    Z = floatStruct.float_variable;
+}
+
+- (void) assignBuffer:(Byte *)buffer withIdentifier:(int) identifier{
+    switch(identifier){
+        case OBEQuaternionLeft:
+            _axLeft = (float)((int16_t)((buffer[0] << 8) | buffer[1])); _axLeft /= 32768.0f;
+            _ayLeft = (float)((int16_t)((buffer[2] << 8) | buffer[3])); _ayLeft /= 32768.0f;
+            _azLeft = (float)((int16_t)((buffer[4] << 8) | buffer[5])); _azLeft /= 32768.0f;
+            _gxLeft = (float)((int16_t)((buffer[6] << 8) | buffer[7])); _gxLeft /= 32768.0f;
+            _gyLeft = (float)((int16_t)((buffer[8] << 8) | buffer[9])); _gyLeft /= 32768.0f;
+            _gzLeft = (float)((int16_t)((buffer[10] << 8) | buffer[11])); _gzLeft /= 32768.0f;
+            _mxLeft = (float)((int16_t)((buffer[12] << 8) | buffer[13])); _mxLeft /= 32768.0f;
+            _myLeft = (float)((int16_t)((buffer[14] << 8) | buffer[15])); _myLeft /= 32768.0f;
+            _mzLeft = (float)((int16_t)((buffer[16] << 8) | buffer[17])); _mzLeft /= 32768.0f;
+            break;
+        case OBEQuaternionRight:
+            _axRight = (float)((int16_t)((buffer[0] << 8) | buffer[1])); _axRight /= 32768.0f;
+            _ayRight = (float)((int16_t)((buffer[2] << 8) | buffer[3])); _ayRight /= 32768.0f;
+            _azRight = (float)((int16_t)((buffer[4] << 8) | buffer[5])); _azRight /= 32768.0f;
+            _gxRight = (float)((int16_t)((buffer[6] << 8) | buffer[7])); _gxRight /= 32768.0f;
+            _gyRight = (float)((int16_t)((buffer[8] << 8) | buffer[9])); _gyRight /= 32768.0f;
+            _gzRight = (float)((int16_t)((buffer[10] << 8) | buffer[11])); _gzRight /= 32768.0f;
+            _mxRight = (float)((int16_t)((buffer[12] << 8) | buffer[13])); _mxRight /= 32768.0f;
+            _myRight = (float)((int16_t)((buffer[14] << 8) | buffer[15])); _myRight /= 32768.0f;
+            _mzRight = (float)((int16_t)((buffer[16] << 8) | buffer[17])); _mzRight /= 32768.0f;
+            break;
+        case OBEQuaternionCenter:
+            _axCenter = (float)((int16_t)((buffer[0] << 8) | buffer[1])); _axCenter /= 32768.0f;
+            _ayCenter = (float)((int16_t)((buffer[2] << 8) | buffer[3])); _ayCenter /= 32768.0f;
+            _azCenter = (float)((int16_t)((buffer[4] << 8) | buffer[5])); _azCenter /= 32768.0f;
+            _gxCenter = (float)((int16_t)((buffer[6] << 8) | buffer[7])); _gxCenter /= 32768.0f;
+            _gyCenter = (float)((int16_t)((buffer[8] << 8) | buffer[9])); _gyCenter /= 32768.0f;
+            _gzCenter = (float)((int16_t)((buffer[10] << 8) | buffer[11])); _gzCenter /= 32768.0f;
+            _mxCenter = (float)((int16_t)((buffer[12] << 8) | buffer[13])); _mxCenter /= 32768.0f;
+            _myCenter = (float)((int16_t)((buffer[14] << 8) | buffer[15])); _myCenter /= 32768.0f;
+            _mzCenter = (float)((int16_t)((buffer[16] << 8) | buffer[17])); _mzCenter /= 32768.0f;
+            break;
+    }
 }
 
 @end
