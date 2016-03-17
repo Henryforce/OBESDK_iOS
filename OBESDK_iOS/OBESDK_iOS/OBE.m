@@ -9,9 +9,7 @@
 #import "OBE.h"
 
 #define OBEService @"0003cbbb-0000-1000-8000-00805F9B0131"
-#define OBEQuaternionCharacteristic_Left @"0003cbb2-0000-1000-8000-00805F9B0131"
-#define OBEQuaternionCharacteristic_Right @"0003cbb4-0000-1000-8000-00805F9B0131"
-#define OBEQuaternionCharacteristic_Center @"0003cbb5-0000-1000-8000-00805F9B0131"
+#define OBEQuaternionCharacteristic @"0003cbb2-0000-1000-8000-00805F9B0131"
 #define OBEPresetCharacteristic @"0003cbb3-0000-1000-8000-00805F9B0131"
 #define OBEHapticCharacteristic @"0003cbb1-0000-1000-8000-00805F9B0131"
 
@@ -253,19 +251,11 @@ union {
     if ([service.UUID isEqual:[CBUUID UUIDWithString:OBEService]]){
         for (CBCharacteristic *aChar in service.characteristics){
             /* Read DATA Characteristic */
-            if ([aChar.UUID isEqual:[CBUUID UUIDWithString:OBEQuaternionCharacteristic_Left]]){
+            if ([aChar.UUID isEqual:[CBUUID UUIDWithString:OBEQuaternionCharacteristic]]){
                 
                 [aPeripheral setNotifyValue:YES forCharacteristic:aChar];
                 
-            }/*else if ([aChar.UUID isEqual:[CBUUID UUIDWithString:OBEQuaternionCharacteristic_Right]]){
-                
-                [aPeripheral setNotifyValue:YES forCharacteristic:aChar];
-                
-            }else if ([aChar.UUID isEqual:[CBUUID UUIDWithString:OBEQuaternionCharacteristic_Center]]){
-                
-                [aPeripheral setNotifyValue:YES forCharacteristic:aChar];
-                
-            }*/else if ([aChar.UUID isEqual:[CBUUID UUIDWithString:OBEHapticCharacteristic]]){
+            }else if ([aChar.UUID isEqual:[CBUUID UUIDWithString:OBEHapticCharacteristic]]){
                 
                 hapticCH = aChar;
                 
@@ -281,7 +271,7 @@ union {
     }
     
     /* Data received */
-    if ([characteristic.UUID isEqual:[CBUUID UUIDWithString:OBEQuaternionCharacteristic_Left]]){
+    if ([characteristic.UUID isEqual:[CBUUID UUIDWithString:OBEQuaternionCharacteristic]]){
         //NSString *auxString = [[NSString alloc] initWithData:characteristic.value encoding:NSUTF8StringEncoding];
         //NSLog(@"Received %@", auxString); auxString = nil;
         
