@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-@interface Quaternion : NSObject
+@interface OBEQuaternion : NSObject
 
 @property float w, x, y, z;
 

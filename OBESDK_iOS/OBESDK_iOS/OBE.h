@@ -8,7 +8,7 @@
 
 #import <UIKit/UIKit.h>
 #import <CoreBluetooth/CoreBluetooth.h>
-#import "Quaternion.h"
+#import "OBEQuaternion.h"
 
 @protocol OBEDelegate <NSObject>
 
@@ -25,6 +25,8 @@
     CBCharacteristic *hapticCH;
     
     NSMutableArray *peripherals;
+    
+    OBEQuaternion *quaternionLeft, *quaternionRight, *quaternionCenter;
     
     BOOL isConnected;
     float W,X,Y,Z;

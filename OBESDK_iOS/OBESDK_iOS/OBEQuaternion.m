@@ -6,9 +6,9 @@
 //  Copyright © 2016 Machina Wearable Technology SAPI de CV. All rights reserved.
 //
 
-#import "Quaternion.h"
+#import "OBEQuaternion.h"
 
-@implementation Quaternion
+@implementation OBEQuaternion
 
 - (id)initWithW:(float)w X:(float)x Y:(float)y Z:(float)z{
     if (self = [super init]) {

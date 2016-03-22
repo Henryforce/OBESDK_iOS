@@ -35,6 +35,10 @@ union {
         }
         peripherals = [[NSMutableArray alloc] init];
         manager = [[CBCentralManager alloc] initWithDelegate:self queue:nil];
+        
+        quaternionLeft = [[OBEQuaternion alloc] init];
+        quaternionRight = [[OBEQuaternion alloc] init];
+        quaternionCenter = [[OBEQuaternion alloc] init];
         //NSLog(@"Init finished");
     }
     return self;
@@ -337,7 +341,7 @@ union {
     return localYaw;
 }
 
-- (Quaternion *) calculateQuaternion:(float) roll :(float) pitch :(float) yaw{
+- (void ) calculateQuaternion:(float) roll :(float) pitch :(float) yaw :(int) identifier{
     float sinHalfYaw = sinf(yaw / 2.0f);
     float cosHalfYaw = cosf(yaw / 2.0f);
     float sinHalfPitch = sinf(pitch/ 2.0f);
@@ -350,9 +354,16 @@ union {
     float z = cosHalfRoll * cosHalfPitch * sinHalfYaw - sinHalfRoll * cosHalfYaw * sinHalfPitch;
     float w = cosHalfRoll * cosHalfPitch * cosHalfYaw + sinHalfRoll * sinHalfPitch * sinHalfYaw;
     
-    Quaternion *auxQ = [[Quaternion alloc] initWithW:w X:x Y:y Z:z];
-    
-    return auxQ;
+    if(identifier == OBEQuaternionLeft){
+        quaternionLeft.w = w; quaternionLeft.x = x;
+        quaternionLeft.y = y; quaternionLeft.z = z;
+    }else if(identifier == OBEQuaternionRight){
+        quaternionRight.w = w; quaternionRight.x = x;
+        quaternionRight.y = y; quaternionRight.z = z;
+    }else if(identifier == OBEQuaternionCenter){
+        quaternionCenter.w = w; quaternionCenter.x = x;
+        quaternionCenter.y = y; quaternionCenter.z = z;
+    }
 }
 
 - (void) bufferToQuaternionStruct:(Byte *)buffer{
