@@ -25,6 +25,9 @@
 		3900335C1C97C4040082304F /* OBEQuaternion.m in Sources */ = {isa = PBXBuildFile; fileRef = 3900335B1C97C4040082304F /* OBEQuaternion.m */; };
 		391127E61C7FD08D00D679A7 /* OBE.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 391127E51C7FD08D00D679A7 /* OBE.h */; };
 		391127E81C7FD08D00D679A7 /* OBE.m in Sources */ = {isa = PBXBuildFile; fileRef = 391127E71C7FD08D00D679A7 /* OBE.m */; };
+		39489C811CBAE85300003331 /* OBEMath.m in Sources */ = {isa = PBXBuildFile; fileRef = 39489C801CBAE85300003331 /* OBEMath.m */; };
+		39D6B4F31CBB16DA00159E04 /* OBEQuaternion.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 3900335A1C97C4040082304F /* OBEQuaternion.h */; };
+		39D6B4F41CBB16DA00159E04 /* OBEMath.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 39489C7F1CBAE85300003331 /* OBEMath.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -44,6 +47,8 @@
 			dstPath = "include/$(PRODUCT_NAME)";
 			dstSubfolderSpec = 16;
 			files = (
+				39D6B4F31CBB16DA00159E04 /* OBEQuaternion.h in CopyFiles */,
+				39D6B4F41CBB16DA00159E04 /* OBEMath.h in CopyFiles */,
 				391127E61C7FD08D00D679A7 /* OBE.h in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -56,6 +61,8 @@
 		391127E21C7FD08D00D679A7 /* libOBESDK_iOS.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libOBESDK_iOS.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		391127E51C7FD08D00D679A7 /* OBE.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = OBE.h; sourceTree = "<group>"; };
 		391127E71C7FD08D00D679A7 /* OBE.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = OBE.m; sourceTree = "<group>"; };
+		39489C7F1CBAE85300003331 /* OBEMath.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OBEMath.h; sourceTree = "<group>"; };
+		39489C801CBAE85300003331 /* OBEMath.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OBEMath.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -92,6 +99,8 @@
 				391127E71C7FD08D00D679A7 /* OBE.m */,
 				3900335A1C97C4040082304F /* OBEQuaternion.h */,
 				3900335B1C97C4040082304F /* OBEQuaternion.m */,
+				39489C7F1CBAE85300003331 /* OBEMath.h */,
+				39489C801CBAE85300003331 /* OBEMath.m */,
 			);
 			path = OBESDK_iOS;
 			sourceTree = "<group>";
@@ -187,6 +196,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				39489C811CBAE85300003331 /* OBEMath.m in Sources */,
 				391127E81C7FD08D00D679A7 /* OBE.m in Sources */,
 				3900335C1C97C4040082304F /* OBEQuaternion.m in Sources */,
 			);

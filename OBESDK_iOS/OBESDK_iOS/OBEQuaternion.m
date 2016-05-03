@@ -10,12 +10,12 @@
 
 @implementation OBEQuaternion
 
-- (id)initWithW:(float)w X:(float)x Y:(float)y Z:(float)z{
+/*- (id)initWithW:(float)w X:(float)x Y:(float)y Z:(float)z{
     if (self = [super init]) {
         // initializer logic
         _w = w; _x = x; _y = y; _z = z;
     }
     return self;
-}
+}*/
 
 @end

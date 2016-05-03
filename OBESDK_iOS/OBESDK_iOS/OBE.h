@@ -9,13 +9,15 @@
 #import <UIKit/UIKit.h>
 #import <CoreBluetooth/CoreBluetooth.h>
 #import "OBEQuaternion.h"
+#import "OBEMath.h"
 
 @protocol OBEDelegate <NSObject>
 
 - (void) onOBEFound:(NSString *)name Index:(int)index;
 - (void) onOBEConnected:(NSString *)name;
 - (void) onOBEDisconnected:(NSString *)name;
-//- (void) onQuaternionUpdated:(int) identifier W:(float)w X:(float)x Y:(float)y Z:(float)z;
+- (void) onQuaternionsUpdated:(OBEQuaternion *)left :(OBEQuaternion *)right :(OBEQuaternion *)center;
+- (void) onButtonsUpdated:(BOOL)button1 :(BOOL)button2 :(BOOL)button3 :(BOOL) button4;
 
 @end
 
@@ -26,10 +28,9 @@
     
     NSMutableArray *peripherals;
     
-    OBEQuaternion *quaternionLeft, *quaternionRight, *quaternionCenter;
-    
     BOOL isConnected;
     float W,X,Y,Z;
+    Byte oldButtons;
 }
 
 @property id<OBEDelegate> delegate;
@@ -51,6 +52,8 @@
 @property float rollLeft, pitchLeft, yawLeft;
 @property float rollRight, pitchRight, yawRight;
 @property float rollCenter, pitchCenter, yawCenter;
+
+@property OBEQuaternion *leftHand, *rightHand, *quaternionCenter;
 
 @property bool Button1, Button2, Button3, Button4;
 

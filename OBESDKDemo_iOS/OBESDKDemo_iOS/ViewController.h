@@ -8,12 +8,14 @@
 
 #import <UIKit/UIKit.h>
 #import "OBESDK_iOS/OBE.h"
+//#import "OBESDK_iOS/OBEQuaternion.h"
 
 @interface ViewController : UIViewController<OBEDelegate>{
     OBE *obe;
 }
 
 //@property (weak, nonatomic) IBOutlet UIButton *searchButton;
+@property (weak, nonatomic) IBOutlet UILabel *rotatingLabel;
 
 - (IBAction)search:(id)sender;
 - (IBAction)toggleMotors:(id)sender;

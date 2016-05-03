@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="9532" systemVersion="14F1605" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="BYZ-38-t0r">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="9532" systemVersion="14F1713" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="BYZ-38-t0r">
     <dependencies>
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="9530"/>
@@ -27,7 +27,7 @@
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" text="Toggle Motors:" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="4Uv-wL-aEJ">
                                 <rect key="frame" x="230" y="323" width="141" height="21"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="CZZ-fl-QcD">
@@ -36,13 +36,24 @@
                                     <action selector="toggleMotors:" destination="BYZ-38-t0r" eventType="valueChanged" id="ekO-zF-6XB"/>
                                 </connections>
                             </switch>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" text="Rotate Me" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="o7y-n9-pO2">
+                                <rect key="frame" x="230" y="237" width="141" height="40"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="40" id="kb6-QY-B8V"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                         <constraints>
                             <constraint firstItem="iPz-18-3QW" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="3zL-7I-Plj"/>
                             <constraint firstItem="4Uv-wL-aEJ" firstAttribute="top" secondItem="iPz-18-3QW" secondAttribute="bottom" constant="8" id="7Sj-qj-76J"/>
+                            <constraint firstItem="o7y-n9-pO2" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="AUS-sd-MJA"/>
                             <constraint firstItem="4Uv-wL-aEJ" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="Mwu-3H-63p"/>
                             <constraint firstItem="iPz-18-3QW" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" id="Top-76-OrO"/>
+                            <constraint firstItem="iPz-18-3QW" firstAttribute="top" secondItem="o7y-n9-pO2" secondAttribute="bottom" constant="8" id="VhA-dN-UZk"/>
                             <constraint firstItem="CZZ-fl-QcD" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="tEC-M5-KEt"/>
                             <constraint firstItem="CZZ-fl-QcD" firstAttribute="top" secondItem="4Uv-wL-aEJ" secondAttribute="bottom" constant="8" id="yYo-Nt-V1u"/>
                         </constraints>

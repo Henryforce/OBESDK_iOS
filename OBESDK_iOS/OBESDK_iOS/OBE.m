@@ -20,10 +20,13 @@
 #define OBEMPUDataSize 20
 #define OBEHapticDataSize 7
 
-union {
+#define alpha 0.1f
+#define alphaComplement 0.9f // alphaComplement = (1.0f - alpha)
+
+/*union {
     float float_variable;
     Byte temp_array[4];
-} floatStruct;
+} floatStruct;*/
 
 @implementation OBE
 
@@ -36,10 +39,9 @@ union {
         peripherals = [[NSMutableArray alloc] init];
         manager = [[CBCentralManager alloc] initWithDelegate:self queue:nil];
         
-        quaternionLeft = [[OBEQuaternion alloc] init];
-        quaternionRight = [[OBEQuaternion alloc] init];
-        quaternionCenter = [[OBEQuaternion alloc] init];
-        //NSLog(@"Init finished");
+        _leftHand = [[OBEQuaternion alloc] init];
+        _rightHand = [[OBEQuaternion alloc] init];
+        _quaternionCenter = [[OBEQuaternion alloc] init];
     }
     return self;
 }
@@ -70,7 +72,7 @@ union {
 
 - (void) updateMotorState{
     if((obePeripheral != nil) && (hapticCH != nil)){
-        NSLog(@"Sending");
+        //NSLog(@"Sending");
         // send status command
         dispatch_async(dispatch_get_global_queue(0,0), ^{//normal priority
             
@@ -97,7 +99,7 @@ union {
             auxData = nil;
         });
     }else{
-        NSLog(@"Not sending");
+        //NSLog(@"Not sending");
     }
 }
 
@@ -151,16 +153,12 @@ union {
  */
 - (void) centralManager:(CBCentralManager *)central didDiscoverPeripheral:(CBPeripheral *)aPeripheral advertisementData:(NSDictionary *)advertisementData RSSI:(NSNumber *)RSSI{
     
-    // NSMutableArray *peripherals = [self mutableArrayValueForKey:@"vimiMonitors"];
-    //if( ![vimiMonitors containsObject:aPeripheral] ){
-    
     [peripherals addObject:aPeripheral];
     
     if(_delegate == nil){
         return;
     }
-    //const char *name = [[aPeripheral name] cStringUsingEncoding:[NSString defaultCStringEncoding]];
-    //NotifyFoundOBE(name, (int)([peripherals count] - 1));
+    
     [_delegate onOBEFound:aPeripheral.name Index:(int)([peripherals count] - 1)];
     
     //stop at the sight of the first device
@@ -170,7 +168,7 @@ union {
     /* Retreive already known devices */
     /*if(autoConnect){
      [manager retrievePeripherals:[NSArray arrayWithObject:(id)aPeripheral.UUID]];
-     }*/
+    }*/
 }
 
 /*
@@ -198,11 +196,8 @@ union {
     [aPeripheral setDelegate:self];
     [aPeripheral discoverServices:nil];
     
-    //self.connected = @"Connected";
     isConnected = true;
     
-    //const char *name = "Connected";
-    //NotifyOBEConnected(name);
     if(_delegate == nil){
         return;
     }
@@ -239,10 +234,6 @@ union {
     for (CBService *aService in aPeripheral.services){
         //NSLog(@"Service found with UUID: %@", aService.UUID);
         
-        /* Device Information Service */
-        /*if ([aService.UUID isEqual:[CBUUID UUIDWithString:@"180A"]]){
-            [aPeripheral discoverCharacteristics:nil forService:aService];
-        }*/
         /* OBE Service */
         if([aService.UUID isEqual:[CBUUID UUIDWithString:OBEService]]){
             [aPeripheral discoverCharacteristics:nil forService:aService];
@@ -276,8 +267,6 @@ union {
     
     /* Data received */
     if ([characteristic.UUID isEqual:[CBUUID UUIDWithString:OBEQuaternionCharacteristic]]){
-        //NSString *auxString = [[NSString alloc] initWithData:characteristic.value encoding:NSUTF8StringEncoding];
-        //NSLog(@"Received %@", auxString); auxString = nil;
         
         if([characteristic.value length] == OBEMPUDataSize){
             
@@ -285,7 +274,6 @@ union {
             Byte *buffer = malloc(sizeof(Byte) * OBEMPUDataSize);
             [quaternionData getBytes:buffer length:OBEMPUDataSize];
             
-            //[self bufferToQuaternionStruct:buffer];
             [self assignBuffer:buffer withIdentifier:buffer[18]];
             if(buffer[18] == OBEQuaternionRight){
                 Byte auxByte = buffer[18];
@@ -293,53 +281,34 @@ union {
                 _Button2 = (auxByte & 0x02) ? true : false;
                 _Button3 = (auxByte & 0x04) ? true : false;
                 _Button4 = (auxByte & 0x08) ? true : false;
+                
+                if(oldButtons != buffer[18]){ //if a button was pressed or unpressed
+                    [_delegate onButtonsUpdated:_Button1 :_Button2 :_Button3 :_Button4];
+                }
+                oldButtons = buffer[18];
+                
+                float rollLeftAux = [OBEMath calculateRoll:(-1.0f * _azLeft) :_axLeft];
+                float pitchLeftAux = -1.0f * [OBEMath calculatePitch:_ayLeft :_axLeft :(-1.0f * _azLeft)];
+                _leftHand.roll = alpha * rollLeftAux + alphaComplement * _leftHand.roll;
+                _leftHand.pitch = alpha * pitchLeftAux + alphaComplement * _leftHand.pitch;
+                [self calculateQuaternion:_leftHand.roll :_leftHand.pitch :_leftHand.yaw :OBEQuaternionLeft];
+                
+                float rollRightAux = [OBEMath calculateRoll:_azRight :(-1.0f * _axRight)];
+                float pitchRightAux = -1.0f * [OBEMath calculatePitch:_ayRight :_axRight :_azRight];
+                _rightHand.roll = alpha * rollRightAux + alphaComplement * _rightHand.roll;
+                _rightHand.pitch = alpha * pitchRightAux + alphaComplement * _rightHand.pitch;
+                [self calculateQuaternion:_rightHand.roll :_rightHand.pitch :_rightHand.yaw :OBEQuaternionRight];
+                
+                [_delegate onQuaternionsUpdated:_leftHand :_rightHand :_quaternionCenter];
             }
             
             free(buffer);
             
-            //[_delegate onQuaternionUpdated:QuaternionLeft W:W X:X Y:Y Z:Z];
         }
     }
 }
 
 #pragma mark User Functions
-
-- (float) calculatePitch:(float) ax :(float) ay :(float) az{
-    float localPitch = 0.0f, squareResult = 0.0f;
-    
-    squareResult = sqrtf(ay * ay + az * az);
-    localPitch = atan2f(-ax, squareResult); // pitch in radians
-    //localPitch = localPitch * 57.2957f; // pitch in degrees
-    
-    return localPitch;
-}
-
-- (float) calculateRoll:(float)ay :(float)az{
-    float localRoll = 0.0f;
-    
-    localRoll = atan2f(ay, az); // roll in radians
-    //localRoll = localRoll * 57.2957f; // roll in degrees
-    
-    return localRoll;
-}
-
-- (float) calculateYaw:(float)roll :(float)pitch :(float)mx :(float)my :(float) mz{
-    float localYaw = 0.0f, upper = 0.0f, lower = 0.0f, sinRoll = 0.0f, cosRoll = 0.0f,
-    sinPitch = 0.0f, cosPitch = 0.0f;
-    
-    sinRoll = sinf(roll);
-    cosRoll = cosf(roll); // / 57.2957f
-    sinPitch = sinf(pitch);
-    cosPitch = cosf(pitch);
-    
-    upper = mz * sinRoll - my * cosRoll;
-    lower = mx * cosPitch + my * sinPitch * sinRoll +
-    mz * sinPitch * cosRoll;
-    localYaw = atan2f(upper, lower); // yaw in radians
-    //localYaw = localYaw * 57.2957f; // yaw in angles
-    
-    return localYaw;
-}
 
 - (void ) calculateQuaternion:(float) roll :(float) pitch :(float) yaw :(int) identifier{
     float sinHalfYaw = sinf(yaw / 2.0f);
@@ -355,66 +324,40 @@ union {
     float w = cosHalfRoll * cosHalfPitch * cosHalfYaw + sinHalfRoll * sinHalfPitch * sinHalfYaw;
     
     if(identifier == OBEQuaternionLeft){
-        quaternionLeft.w = w; quaternionLeft.x = x;
-        quaternionLeft.y = y; quaternionLeft.z = z;
+        _leftHand.w = w; _leftHand.x = x;
+        _leftHand.y = y; _leftHand.z = z;
     }else if(identifier == OBEQuaternionRight){
-        quaternionRight.w = w; quaternionRight.x = x;
-        quaternionRight.y = y; quaternionRight.z = z;
+        _rightHand.w = w; _rightHand.x = x;
+        _rightHand.y = y; _rightHand.z = z;
     }else if(identifier == OBEQuaternionCenter){
-        quaternionCenter.w = w; quaternionCenter.x = x;
-        quaternionCenter.y = y; quaternionCenter.z = z;
+        _quaternionCenter.w = w; _quaternionCenter.x = x;
+        _quaternionCenter.y = y; _quaternionCenter.z = z;
     }
 }
 
-- (void) bufferToQuaternionStruct:(Byte *)buffer{
-    floatStruct.temp_array[0] = buffer[0];
-    floatStruct.temp_array[1] = buffer[1];
-    floatStruct.temp_array[2] = buffer[2];
-    floatStruct.temp_array[3] = buffer[3];
-    W = floatStruct.float_variable;
-    
-    floatStruct.temp_array[0] = buffer[4];
-    floatStruct.temp_array[1] = buffer[5];
-    floatStruct.temp_array[2] = buffer[6];
-    floatStruct.temp_array[3] = buffer[7];
-    X = floatStruct.float_variable;
-    
-    floatStruct.temp_array[0] = buffer[8];
-    floatStruct.temp_array[1] = buffer[9];
-    floatStruct.temp_array[2] = buffer[10];
-    floatStruct.temp_array[3] = buffer[11];
-    Y = floatStruct.float_variable;
-    
-    floatStruct.temp_array[0] = buffer[12];
-    floatStruct.temp_array[1] = buffer[13];
-    floatStruct.temp_array[2] = buffer[14];
-    floatStruct.temp_array[3] = buffer[15];
-    Z = floatStruct.float_variable;
-}
-
-- (void) assignBuffer:(Byte *)buffer withIdentifier:(int) identifier{
+- (void) assignBuffer:(Byte *)buffer withIdentifier:(int)identifier{
     switch(identifier){
         case OBEQuaternionLeft:
-            _axLeft = (float)((int16_t)((buffer[0] << 8) | buffer[1])); _axLeft /= 32768.0f;
-            _ayLeft = (float)((int16_t)((buffer[2] << 8) | buffer[3])); _ayLeft /= 32768.0f;
-            _azLeft = (float)((int16_t)((buffer[4] << 8) | buffer[5])); _azLeft /= 32768.0f;
-            _gxLeft = (float)((int16_t)((buffer[6] << 8) | buffer[7])); _gxLeft /= 32768.0f;
-            _gyLeft = (float)((int16_t)((buffer[8] << 8) | buffer[9])); _gyLeft /= 32768.0f;
-            _gzLeft = (float)((int16_t)((buffer[10] << 8) | buffer[11])); _gzLeft /= 32768.0f;
-            _mxLeft = (float)((int16_t)((buffer[12] << 8) | buffer[13])); _mxLeft /= 32768.0f;
-            _myLeft = (float)((int16_t)((buffer[14] << 8) | buffer[15])); _myLeft /= 32768.0f;
-            _mzLeft = (float)((int16_t)((buffer[16] << 8) | buffer[17])); _mzLeft /= 32768.0f;
+            _axLeft = [self bytesToFloat:buffer[0] :buffer[1]];
+            _ayLeft = [self bytesToFloat:buffer[2] :buffer[3]];
+            _azLeft = [self bytesToFloat:buffer[4] :buffer[5]];
+            _gxLeft = [self bytesToFloat:buffer[6] :buffer[7]];
+            _gyLeft = [self bytesToFloat:buffer[8] :buffer[9]];
+            _gzLeft = [self bytesToFloat:buffer[10] :buffer[11]];
+            _mxLeft = [self bytesToFloat:buffer[12] :buffer[13]];
+            _myLeft = [self bytesToFloat:buffer[14] :buffer[15]];
+            _mzLeft = [self bytesToFloat:buffer[16] :buffer[17]];
             break;
         case OBEQuaternionRight:
-            _axRight = (float)((int16_t)((buffer[0] << 8) | buffer[1])); _axRight /= 32768.0f;
-            _ayRight = (float)((int16_t)((buffer[2] << 8) | buffer[3])); _ayRight /= 32768.0f;
-            _azRight = (float)((int16_t)((buffer[4] << 8) | buffer[5])); _azRight /= 32768.0f;
-            _gxRight = (float)((int16_t)((buffer[6] << 8) | buffer[7])); _gxRight /= 32768.0f;
-            _gyRight = (float)((int16_t)((buffer[8] << 8) | buffer[9])); _gyRight /= 32768.0f;
-            _gzRight = (float)((int16_t)((buffer[10] << 8) | buffer[11])); _gzRight /= 32768.0f;
-            _mxRight = (float)((int16_t)((buffer[12] << 8) | buffer[13])); _mxRight /= 32768.0f;
-            _myRight = (float)((int16_t)((buffer[14] << 8) | buffer[15])); _myRight /= 32768.0f;
-            _mzRight = (float)((int16_t)((buffer[16] << 8) | buffer[17])); _mzRight /= 32768.0f;
+            _axRight = [self bytesToFloat:buffer[0] :buffer[1]];
+            _ayRight = [self bytesToFloat:buffer[2] :buffer[3]];
+            _azRight = [self bytesToFloat:buffer[4] :buffer[5]];
+            _gxRight = [self bytesToFloat:buffer[6] :buffer[7]];
+            _gyRight = [self bytesToFloat:buffer[8] :buffer[9]];
+            _gzRight = [self bytesToFloat:buffer[10] :buffer[11]];
+            _mxRight = [self bytesToFloat:buffer[12] :buffer[13]];
+            _myRight = [self bytesToFloat:buffer[14] :buffer[15]];
+            _mzRight = [self bytesToFloat:buffer[16] :buffer[17]];
             break;
         case OBEQuaternionCenter:
             _axCenter = (float)((int16_t)((buffer[0] << 8) | buffer[1])); _axCenter /= 32768.0f;
@@ -428,6 +371,12 @@ union {
             _mzCenter = (float)((int16_t)((buffer[16] << 8) | buffer[17])); _mzCenter /= 32768.0f;
             break;
     }
+}
+
+- (float) bytesToFloat:(Byte)byteLS :(Byte)byteMS{
+    float aux = (float)((int16_t)((byteLS << 8) | byteMS));
+    aux /= 32768.0f;
+    return aux;
 }
 
 @end

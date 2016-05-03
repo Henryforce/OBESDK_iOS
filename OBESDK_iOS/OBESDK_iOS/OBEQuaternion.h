@@ -11,7 +11,8 @@
 @interface OBEQuaternion : NSObject
 
 @property float w, x, y, z;
+@property float roll, yaw, pitch;
 
-- (id)initWithW:(float)w X:(float)x Y:(float)y Z:(float)z;
+//- (id)initWithW:(float)w X:(float)x Y:(float)y Z:(float)z;
 
 @end

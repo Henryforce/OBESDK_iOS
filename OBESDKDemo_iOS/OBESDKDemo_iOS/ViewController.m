@@ -19,15 +19,10 @@
     // Do any additional setup after loading the view, typically from a nib.
     
     obe = [[OBE alloc] initWithDelegate:self];
-    //obe = [[OBE alloc] init];
-    
-    //[obe setDelegate:self];
 }
 
 - (void)viewDidAppear:(BOOL)animated{
     [super viewDidAppear:animated];
-    
-    //[obe startScanning];
 }
 
 - (void)viewWillDisappear:(BOOL)animated{
@@ -58,9 +53,17 @@
     NSLog(@"Disconnected from: %@", name);
 }
 
-//- (void) onQuaternionUpdated:(int) identifier W:(float)w X:(float)x Y:(float)y Z:(float)z{
-//    NSLog(@"%i, %f, %f, %f, %f", identifier, w, x, y, z);
-//}
+- (void) onQuaternionsUpdated:(OBEQuaternion *)left :(OBEQuaternion *)right :(OBEQuaternion *)center{
+    
+    CATransform3D rotationAndPerspectiveTransform = CATransform3DConcat(CATransform3DConcat(CATransform3DRotate (CATransform3DIdentity, left.pitch, -1.0, 0.0, 0.0), CATransform3DRotate(CATransform3DIdentity, left.yaw, 0.0, 1.0, 0.0)), CATransform3DRotate(CATransform3DIdentity, left.roll, 0.0, 0.0, -1.0));
+    
+    _rotatingLabel.layer.transform = rotationAndPerspectiveTransform;
+    
+}
+
+- (void) onButtonsUpdated:(BOOL)button1 :(BOOL)button2 :(BOOL)button3 :(BOOL) button4{
+    
+}
 
 #pragma mark IBFunctions
 
