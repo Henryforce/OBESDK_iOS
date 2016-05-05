@@ -17,7 +17,7 @@
 - (void) onOBEConnected:(NSString *)name;
 - (void) onOBEDisconnected:(NSString *)name;
 - (void) onQuaternionsUpdated:(OBEQuaternion *)left :(OBEQuaternion *)right :(OBEQuaternion *)center;
-- (void) onButtonsUpdated:(BOOL)button1 :(BOOL)button2 :(BOOL)button3 :(BOOL) button4;
+- (void) onButtonsUpdated;
 
 @end
 
@@ -30,7 +30,8 @@
     
     BOOL isConnected;
     float W,X,Y,Z;
-    Byte oldButtons;
+    //Byte oldButtons;
+    Byte oldLeftButton, oldRightButtons, oldLogoButtons;
 }
 
 @property id<OBEDelegate> delegate;
@@ -55,7 +56,10 @@
 
 @property OBEQuaternion *leftHand, *rightHand, *quaternionCenter;
 
-@property bool Button1, Button2, Button3, Button4;
+//@property bool Button1, Button2, Button3, Button4;
+@property bool LeftButton1, LeftButton2, LeftButton3, LeftButton4;
+@property bool RightButton1, RightButton2, RightButton3, RightButton4;
+@property bool LogoButton;
 
 - (id)initWithDelegate:(id<OBEDelegate>)delegate;
 

@@ -53,6 +53,7 @@
     NSLog(@"Disconnected from: %@", name);
 }
 
+// Quaternion data updated
 - (void) onQuaternionsUpdated:(OBEQuaternion *)left :(OBEQuaternion *)right :(OBEQuaternion *)center{
     
     CATransform3D rotationAndPerspectiveTransform = CATransform3DConcat(CATransform3DConcat(CATransform3DRotate (CATransform3DIdentity, left.pitch, -1.0, 0.0, 0.0), CATransform3DRotate(CATransform3DIdentity, left.yaw, 0.0, 1.0, 0.0)), CATransform3DRotate(CATransform3DIdentity, left.roll, 0.0, 0.0, -1.0));
@@ -61,7 +62,8 @@
     
 }
 
-- (void) onButtonsUpdated:(BOOL)button1 :(BOOL)button2 :(BOOL)button3 :(BOOL) button4{
+// There was a button pressed or unpressed. Check current button state manually.
+- (void) onButtonsUpdated{
     
 }
 

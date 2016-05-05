@@ -8,14 +8,16 @@
 
 #import <UIKit/UIKit.h>
 #import <CoreBluetooth/CoreBluetooth.h>
-#import "Quaternion.h"
+#import "OBEQuaternion.h"
+#import "OBEMath.h"
 
 @protocol OBEDelegate <NSObject>
 
 - (void) onOBEFound:(NSString *)name Index:(int)index;
 - (void) onOBEConnected:(NSString *)name;
 - (void) onOBEDisconnected:(NSString *)name;
-//- (void) onQuaternionUpdated:(int) identifier W:(float)w X:(float)x Y:(float)y Z:(float)z;
+- (void) onQuaternionsUpdated:(OBEQuaternion *)left :(OBEQuaternion *)right :(OBEQuaternion *)center;
+- (void) onButtonsUpdated;
 
 @end
 
@@ -28,6 +30,8 @@
     
     BOOL isConnected;
     float W,X,Y,Z;
+    //Byte oldButtons;
+    Byte oldLeftButton, oldRightButtons, oldLogoButtons;
 }
 
 @property id<OBEDelegate> delegate;
@@ -50,7 +54,12 @@
 @property float rollRight, pitchRight, yawRight;
 @property float rollCenter, pitchCenter, yawCenter;
 
-@property bool Button1, Button2, Button3, Button4;
+@property OBEQuaternion *leftHand, *rightHand, *quaternionCenter;
+
+//@property bool Button1, Button2, Button3, Button4;
+@property bool LeftButton1, LeftButton2, LeftButton3, LeftButton4;
+@property bool RightButton1, RightButton2, RightButton3, RightButton4;
+@property bool LogoButton;
 
 - (id)initWithDelegate:(id<OBEDelegate>)delegate;
 

@@ -275,17 +275,22 @@
             [quaternionData getBytes:buffer length:OBEMPUDataSize];
             
             [self assignBuffer:buffer withIdentifier:buffer[18]];
-            if(buffer[18] == OBEQuaternionRight){
-                Byte auxByte = buffer[18];
-                _Button1 = (auxByte & 0x01) ? true : false;
-                _Button2 = (auxByte & 0x02) ? true : false;
-                _Button3 = (auxByte & 0x04) ? true : false;
-                _Button4 = (auxByte & 0x08) ? true : false;
+            
+            Byte auxByte = buffer[18];
+            if(auxByte == OBEQuaternionCenter){
                 
-                if(oldButtons != buffer[18]){ //if a button was pressed or unpressed
+//                _Button1 = (auxByte & 0x01) ? true : false;
+//                _Button2 = (auxByte & 0x02) ? true : false;
+//                _Button3 = (auxByte & 0x04) ? true : false;
+//                _Button4 = (auxByte & 0x08) ? true : false;
+                _LogoButton = (auxByte & 0x01) ? true : false;
+                
+                // TODO: implement delegate with new buttons
+                //[_delegate onButtonsUpdated];
+                /*if(oldButtons != buffer[18]){ //if a button was pressed or unpressed
                     [_delegate onButtonsUpdated:_Button1 :_Button2 :_Button3 :_Button4];
                 }
-                oldButtons = buffer[18];
+                oldButtons = buffer[18];*/
                 
                 float rollLeftAux = [OBEMath calculateRoll:(-1.0f * _azLeft) :_axLeft];
                 float pitchLeftAux = -1.0f * [OBEMath calculatePitch:_ayLeft :_axLeft :(-1.0f * _azLeft)];
@@ -300,6 +305,16 @@
                 [self calculateQuaternion:_rightHand.roll :_rightHand.pitch :_rightHand.yaw :OBEQuaternionRight];
                 
                 [_delegate onQuaternionsUpdated:_leftHand :_rightHand :_quaternionCenter];
+            }else if(auxByte == OBEQuaternionLeft){
+                _LeftButton1 = (auxByte & 0x01) ? true : false;
+                _LeftButton2 = (auxByte & 0x02) ? true : false;
+                _LeftButton3 = (auxByte & 0x04) ? true : false;
+                _LeftButton4 = (auxByte & 0x08) ? true : false;
+            }else if(auxByte == OBEQuaternionRight){
+                _RightButton1 = (auxByte & 0x01) ? true : false;
+                _RightButton2 = (auxByte & 0x02) ? true : false;
+                _RightButton3 = (auxByte & 0x04) ? true : false;
+                _RightButton4 = (auxByte & 0x08) ? true : false;
             }
             
             free(buffer);
