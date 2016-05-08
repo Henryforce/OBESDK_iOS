@@ -13,6 +13,9 @@
 #define OBEPresetCharacteristic @"0003cbb3-0000-1000-8000-00805F9B0131"
 #define OBEHapticCharacteristic @"0003cbb1-0000-1000-8000-00805F9B0131"
 
+#define BatteryService @"180F"
+#define BatteryLevelCharacteristic @"2A19"
+
 #define OBEQuaternionLeft 0
 #define OBEQuaternionRight 1
 #define OBEQuaternionCenter 2
@@ -234,6 +237,11 @@
     for (CBService *aService in aPeripheral.services){
         //NSLog(@"Service found with UUID: %@", aService.UUID);
         
+        // Battery
+        if([aService.UUID isEqual:[CBUUID UUIDWithString:BatteryService]]){
+            [aPeripheral discoverCharacteristics:nil forService:aService];
+        }
+        
         /* OBE Service */
         if([aService.UUID isEqual:[CBUUID UUIDWithString:OBEService]]){
             [aPeripheral discoverCharacteristics:nil forService:aService];
@@ -242,6 +250,14 @@
 }
 
 - (void) peripheral:(CBPeripheral *)aPeripheral didDiscoverCharacteristicsForService:(CBService *)service error:(NSError *)error{
+    
+    if ([service.UUID isEqual:[CBUUID UUIDWithString:BatteryService]]){
+        for (CBCharacteristic *aChar in service.characteristics){
+            if ([aChar.UUID isEqual:[CBUUID UUIDWithString:BatteryLevelCharacteristic]]){
+                [aPeripheral setNotifyValue:YES forCharacteristic:aChar];
+            }
+        }
+    }
     
     if ([service.UUID isEqual:[CBUUID UUIDWithString:OBEService]]){
         for (CBCharacteristic *aChar in service.characteristics){
@@ -263,6 +279,25 @@
     // If delegate is nil, do nothing
     if(_delegate == nil){
         return;
+    }
+    
+    /* Data received */
+    if ([characteristic.UUID isEqual:[CBUUID UUIDWithString:BatteryLevelCharacteristic]]){
+        if([characteristic.value length] > 0){
+            //NSLog(@"Battery Length %lu", [characteristic.value length]);
+            NSData *batteryData = characteristic.value;
+            Byte *dataArray = (Byte *)malloc(sizeof(Byte) * 1);
+            [batteryData getBytes:dataArray length:1];
+            
+            // This could be optimized
+            int level = dataArray[0];
+            float flevel = level;
+            flevel /= 100.0f;
+            
+            [_delegate onBatteryUpdated:flevel];
+            
+            free(dataArray);
+        }
     }
     
     /* Data received */

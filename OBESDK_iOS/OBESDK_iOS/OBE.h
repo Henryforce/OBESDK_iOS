@@ -17,6 +17,7 @@
 - (void) onOBEConnected:(NSString *)name;
 - (void) onOBEDisconnected:(NSString *)name;
 - (void) onQuaternionsUpdated:(OBEQuaternion *)left :(OBEQuaternion *)right :(OBEQuaternion *)center;
+- (void) onBatteryUpdated:(float)batteryLevel;
 - (void) onButtonsUpdated;
 
 @end

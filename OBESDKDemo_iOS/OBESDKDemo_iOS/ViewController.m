@@ -53,6 +53,10 @@
     NSLog(@"Disconnected from: %@", name);
 }
 
+- (void) onBatteryUpdated:(float)batteryLevel{
+    NSLog(@"Battery %f", batteryLevel); // percentage
+}
+
 // Quaternion data updated
 - (void) onQuaternionsUpdated:(OBEQuaternion *)left :(OBEQuaternion *)right :(OBEQuaternion *)center{
     
