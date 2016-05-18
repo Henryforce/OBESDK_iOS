@@ -318,7 +318,7 @@
 //                _Button2 = (auxByte & 0x02) ? true : false;
 //                _Button3 = (auxByte & 0x04) ? true : false;
 //                _Button4 = (auxByte & 0x08) ? true : false;
-                _LogoButton = (auxByte & 0x01) ? true : false;
+                _LogoButton = (buffer[19] & 0x01) ? true : false;
                 
                 // TODO: implement delegate with new buttons
                 //[_delegate onButtonsUpdated];
@@ -339,17 +339,19 @@
                 _rightHand.pitch = alpha * pitchRightAux + alphaComplement * _rightHand.pitch;
                 [self calculateQuaternion:_rightHand.roll :_rightHand.pitch :_rightHand.yaw :OBEQuaternionRight];
                 
-                [_delegate onQuaternionsUpdated:_leftHand :_rightHand :_quaternionCenter];
+                [_delegate onButtonsUpdated];
+                
+                //[_delegate onQuaternionsUpdated:_leftHand :_rightHand :_quaternionCenter];
             }else if(auxByte == OBEQuaternionLeft){
-                _LeftButton1 = (auxByte & 0x01) ? true : false;
-                _LeftButton2 = (auxByte & 0x02) ? true : false;
-                _LeftButton3 = (auxByte & 0x04) ? true : false;
-                _LeftButton4 = (auxByte & 0x08) ? true : false;
+                _LeftButton1 = (buffer[19] & 0x01) ? true : false;
+                _LeftButton2 = (buffer[19] & 0x02) ? true : false;
+                _LeftButton3 = (buffer[19] & 0x04) ? true : false;
+                _LeftButton4 = (buffer[19] & 0x08) ? true : false;
             }else if(auxByte == OBEQuaternionRight){
-                _RightButton1 = (auxByte & 0x01) ? true : false;
-                _RightButton2 = (auxByte & 0x02) ? true : false;
-                _RightButton3 = (auxByte & 0x04) ? true : false;
-                _RightButton4 = (auxByte & 0x08) ? true : false;
+                _RightButton1 = (buffer[19] & 0x01) ? true : false;
+                _RightButton2 = (buffer[19] & 0x02) ? true : false;
+                _RightButton3 = (buffer[19] & 0x04) ? true : false;
+                _RightButton4 = (buffer[19] & 0x08) ? true : false;
             }
             
             free(buffer);
