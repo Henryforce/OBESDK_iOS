@@ -60,15 +60,19 @@
 // Quaternion data updated
 - (void) onQuaternionsUpdated:(OBEQuaternion *)left :(OBEQuaternion *)right :(OBEQuaternion *)center{
     
-    CATransform3D rotationAndPerspectiveTransform = CATransform3DConcat(CATransform3DConcat(CATransform3DRotate (CATransform3DIdentity, left.pitch, -1.0, 0.0, 0.0), CATransform3DRotate(CATransform3DIdentity, left.yaw, 0.0, 1.0, 0.0)), CATransform3DRotate(CATransform3DIdentity, left.roll, 0.0, 0.0, -1.0));
+    //CATransform3D rotationAndPerspectiveTransform = CATransform3DConcat(CATransform3DConcat(CATransform3DRotate (CATransform3DIdentity, left.pitch, -1.0, 0.0, 0.0), CATransform3DRotate(CATransform3DIdentity, left.yaw, 0.0, 1.0, 0.0)), CATransform3DRotate(CATransform3DIdentity, left.roll, 0.0, 0.0, -1.0));
     
-    _rotatingLabel.layer.transform = rotationAndPerspectiveTransform;
+    //_rotatingLabel.layer.transform = rotationAndPerspectiveTransform;
     
 }
 
 // There was a button pressed or unpressed. Check current button state manually.
 - (void) onButtonsUpdated{
+    CATransform3D rotationAndPerspectiveTransform = CATransform3DConcat(CATransform3DConcat(CATransform3DRotate (CATransform3DIdentity, obe.rightHand.pitch, -1.0, 0.0, 0.0), CATransform3DRotate(CATransform3DIdentity, obe.rightHand.yaw, 0.0, 1.0, 0.0)), CATransform3DRotate(CATransform3DIdentity, obe.rightHand.roll, 0.0, 0.0, -1.0));
     
+    _rotatingLabel.layer.transform = rotationAndPerspectiveTransform;
+    
+    //NSLog(@"%f, %f", obe.rightHand.roll * 180 / 3.1416, obe.rightHand.pitch * 180 / 3.1416);
 }
 
 #pragma mark IBFunctions
@@ -86,12 +90,14 @@
     UISwitch *toggle = (UISwitch *)sender;
     
     float motorValue = toggle.isOn ? 1.0f : 0.0f;
+    //NSLog(@"%f", motorValue);
     
     if(obe != nil){
         [obe setMotor1:motorValue];
         [obe setMotor2:motorValue];
         [obe setMotor3:motorValue];
         [obe setMotor4:motorValue];
+        NSLog(@"%f", obe.Motor1);
         
         [obe updateMotorState];
     }

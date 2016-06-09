@@ -75,7 +75,7 @@
 
 - (void) updateMotorState{
     if((obePeripheral != nil) && (hapticCH != nil)){
-        //NSLog(@"Sending");
+        NSLog(@"Sending");
         // send status command
         dispatch_async(dispatch_get_global_queue(0,0), ^{//normal priority
             
@@ -102,7 +102,7 @@
             auxData = nil;
         });
     }else{
-        //NSLog(@"Not sending");
+        NSLog(@"Not sending");
     }
 }
 
@@ -327,14 +327,18 @@
                 }
                 oldButtons = buffer[18];*/
                 
-                float rollLeftAux = [OBEMath calculateRoll:(-1.0f * _azLeft) :_axLeft];
-                float pitchLeftAux = -1.0f * [OBEMath calculatePitch:_ayLeft :_axLeft :(-1.0f * _azLeft)];
+                //float rollLeftAux = [OBEMath calculateRoll: _azLeft :_ayLeft];
+                //float pitchLeftAux = -1.0f * [OBEMath calculatePitch:_axLeft :_ayLeft :_azLeft];
+                float rollLeftAux = [OBEMath calculateRoll:(-1.0f * _azLeft) :(-1.0f * _ayLeft)];
+                float pitchLeftAux = -1.0f * [OBEMath calculatePitch:_axLeft :_ayLeft :(-1.0f * _azLeft)];
                 _leftHand.roll = alpha * rollLeftAux + alphaComplement * _leftHand.roll;
                 _leftHand.pitch = alpha * pitchLeftAux + alphaComplement * _leftHand.pitch;
                 [self calculateQuaternion:_leftHand.roll :_leftHand.pitch :_leftHand.yaw :OBEQuaternionLeft];
                 
-                float rollRightAux = [OBEMath calculateRoll:_azRight :(-1.0f * _axRight)];
-                float pitchRightAux = -1.0f * [OBEMath calculatePitch:_ayRight :_axRight :_azRight];
+                //float rollRightAux = [OBEMath calculateRoll:(-1.0f * _azRight) :(-1.0f * _ayRight)];
+                //float pitchRightAux = -1.0f * [OBEMath calculatePitch:_axRight :_ayRight :(-1.0f * _azRight)];
+                float rollRightAux = [OBEMath calculateRoll: _azRight :_ayRight];
+                float pitchRightAux = -1.0f * [OBEMath calculatePitch:_axRight :_ayRight :_azRight];
                 _rightHand.roll = alpha * rollRightAux + alphaComplement * _rightHand.roll;
                 _rightHand.pitch = alpha * pitchRightAux + alphaComplement * _rightHand.pitch;
                 [self calculateQuaternion:_rightHand.roll :_rightHand.pitch :_rightHand.yaw :OBEQuaternionRight];
@@ -389,6 +393,7 @@
 
 - (void) assignBuffer:(Byte *)buffer withIdentifier:(int)identifier{
     switch(identifier){
+            // INVERT LEFT With RIGHT!
         case OBEQuaternionLeft:
             _axLeft = [self bytesToFloat:buffer[0] :buffer[1]];
             _ayLeft = [self bytesToFloat:buffer[2] :buffer[3]];
